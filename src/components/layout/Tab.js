@@ -6,6 +6,8 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+import MapContainer from '../Map';
+import './Tab.css';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -19,8 +21,8 @@ function TabPanel(props) {
       {...other}
     >
       {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
+        <Box p={0}>
+          {children}
         </Box>
       )}
     </div>
@@ -65,7 +67,7 @@ export default function SimpleTabs() {
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
-        Item One
+        <MapContainer />
       </TabPanel>
       <TabPanel value={value} index={1}>
         Item Two

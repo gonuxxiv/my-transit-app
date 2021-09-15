@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
-import SimpleTabs from './Tab';
+import SimpleTabs from './components/layout/Tab';
+import GoogleMap from './components/Map';
 
 ReactDOM.render(
   <React.StrictMode>

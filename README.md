@@ -1,6 +1,14 @@
-# Getting Started with Create React App
+# My-Transit-App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Tools used for this project:
+    - React JS
+    - Google Map API
+
+# Schedule
+
+## Next Step
+
+    - Get translink API and place markers for all bus stops.
 
 ## Available Scripts
 
