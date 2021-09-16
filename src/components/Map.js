@@ -26,6 +26,13 @@ export default function Map({value}) {
         libraries,
     })
 
+    const [currentLocationMarker, setCurrentLocationMarker] = React.useState({
+        lat: '',
+        lng: '',
+        time: ''
+    });
+    const [markers, setMarkers] = React.useState([]);
+
     const mapRef = React.useRef();
     const onMapLoad = React.useCallback((map) => {
         mapRef.current = map;
@@ -42,8 +49,7 @@ export default function Map({value}) {
     
     return (
         <div style={value !== 0 ? {display: "none"} : {display: "block"}}>
-            {currentLocation(panTo)}
-            {/* <currentLocation panTo={panTo} /> */}
+            {currentLocation(panTo, setCurrentLocationMarker)}
             <GoogleMap 
                 mapContainerStyle={mapContainerStyle}
                 zoom={8}
@@ -51,12 +57,29 @@ export default function Map({value}) {
                 options={options}
                 onClick={() => {}}
                 onLoad={onMapLoad}>
+                     <Marker 
+                            position={{lat: currentLocationMarker.lat, lng: currentLocationMarker.lng}} 
+                            icon={{
+                                url: '/blue-dot.png',
+                                scaledSize: new window.google.maps.Size(25, 25),
+                            }}
+                    />
+                    {/* {currentLocationMarker(marker => 
+                        <Marker 
+                            key={marker.time.toISOString()} 
+                            position={{lat: marker.lat, lng: marker.lng}} 
+                            icon={{
+                                url: '/blue-dot.png',
+                                scaledSize: new window.google.maps.Size(25, 25),
+                            }}
+                        />
+                    )} */}
             </GoogleMap>
         </div>
     );
 }
 
-function currentLocation(panTo) {
+function currentLocation(panTo, setCurrentLocationMarker) {
     return (
         <button className="locate" onClick={() => {
             navigator.geolocation.getCurrentPosition((position) => {
@@ -64,6 +87,11 @@ function currentLocation(panTo) {
                 panTo({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
+                })
+                setCurrentLocationMarker({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    time: new Date(),
                 })
             }, () => null);
         }}>
