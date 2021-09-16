@@ -11,3 +11,18 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.locate {
+  position: absolute;
+  bottom: 7rem;
+  right: 0.58rem;
+  background: none;
+  border: none;
+  z-index: 10;
+}
+
+.locate img {
+  width: 30px;
+  cursor: pointer;
+  /* filter: invert(92%) sepia(86%) saturate(800%) hue-rotate(24deg) brightness(106%) contrast(92%); */
+}

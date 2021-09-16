@@ -4,9 +4,11 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import SimpleTabs from './components/layout/Tab';
 import GoogleMap from './components/Map';
+import Home from './components/Home';
 
 ReactDOM.render(
   <React.StrictMode>
+    {/* <Home /> */}
     <SimpleTabs />
   </React.StrictMode>,
   document.getElementById('root')
