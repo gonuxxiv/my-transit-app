@@ -7,6 +7,8 @@ import axios from "axios";
 
 const translinkAPI = 'uR1LJ7QcIfeLZmaQ0oPs';
 
+const NO_SERVICE_STOP = "There are currently no buses scheduled for this stop.";
+
 const libraries = ["places"]
 const mapContainerStyle = {
     width: "100vw",
@@ -23,6 +25,7 @@ const options = {
     styles: dark,
     disableDefaultUI: true,
     zoomControl: true,
+    clickableIcons: false,
 }
 
 let animateTrigger = 1;
@@ -64,7 +67,13 @@ export default function Map({value}) {
 
     const [clickedLocation, setClickedLocation] = React.useState(false);
 
-    const fetchApiData = () => {
+    const [selectedStop, setSelectedStop] = React.useState(null);
+
+    const [busList, setBusList] = React.useState([]);
+
+    const [busData, setBusData] = React.useState(null);
+
+    const fetchLocationApiData = () => {
         if (newPos !== undefined) {
             // console.log(newPos)
             let lat = newPos.lat.toString();
@@ -74,11 +83,12 @@ export default function Map({value}) {
 
             axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=" + lat + "&long=" + lng + "&radius=2000")
             .then((response) => setData(response.data));
+            // console.log(data);
         } 
     }
 
     // useEffect(() => {
-    //     fetchApiData();
+    //     fetchBusApiData();
     // }, []);
     
       function handleCenterChanged() {
@@ -87,9 +97,8 @@ export default function Map({value}) {
         const position = mapRef.current.getCenter().toJSON();
         setNewPos(position);
         
-        
         // console.log(newPos);
-        fetchApiData();
+        fetchLocationApiData();
     }
 
     if(loadError) return "Error loading maps";
@@ -118,41 +127,72 @@ export default function Map({value}) {
                                 url: '/bus-stop2.png',
                                 scaledSize: new window.google.maps.Size(45, 45),
                             }}
+                            onClick={() => {
+                                setSelectedStop(stop);
+                                storeBusList(stop, setBusList);
+                            }}
                         />
                     })
                 }
-                {/* {placeBusStopMarkers(newPos, setData, data, moved, setMoved)} */}
-                
-                    {
-                        // placeBusStopMarkers(panTo, setStopMarkers)
-                    }
-                    {/* {currentLocationMarker(marker => 
-                        <Marker 
-                            key={marker.time.toISOString()} 
-                            position={{lat: marker.lat, lng: marker.lng}} 
-                            icon={{
-                                url: '/blue-dot.png',
-                                scaledSize: new window.google.maps.Size(25, 25),
-                            }}
-                        />
-                    )} */}
+                {selectedStop && (
+                    <InfoWindow 
+                        position={{
+                            lat: selectedStop.Latitude, 
+                            lng: selectedStop.Longitude
+                        }}
+                        onCloseClick={() => {
+                            setSelectedStop(null);
+                        }}
+                    >
+                        <div>
+                            <div>
+                                <h1>{selectedStop.StopNo}</h1> 
+                                <h2>BY</h2> {selectedStop.AtStreet} <h2>ON</h2> {selectedStop.OnStreet}
+                            </div>
+                            {busList.map((bus) => {
+                                if (bus === NO_SERVICE_STOP) {
+                                    return (
+                                        <p>There are currently no buses scheduled for this stop.</p>
+                                    )
+                                }
+                                return (
+                                    <button
+                                        onClick={getSpecifiedBus(bus, selectedStop.StopNo)}
+                                    >
+                                        {bus}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </InfoWindow>
+                )}
             </GoogleMap>
         </div>
     );
 }
 
-// function placeBusStopMarkers(newPos, setData, data, moved, setMoved) {
-//     if (newPos != null && moved) {
-//         console.log(newPos);
-//         axios.get(`https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=49.2827&long=-123.1207&radius=500`)
-//             .then((response) => setData(response.data));
-//         console.log(data);
-//         setMoved(false)
-//         return (
-//             <div></div>
-//         )
-//     }
-// }
+function fetchBusApiData(bus, stopNo) {
+    if (bus !== undefined && stopNo !== undefined) {
+        axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
+            .then((response) => console.log(response.data));        
+    }
+
+    // console.log(busData);
+}
+
+function getSpecifiedBus(bus, stopNo) {
+    fetchBusApiData(bus, stopNo);
+}
+
+function storeBusList(busStop, setBusList) {
+    // store buses to a variable
+    let buses = busStop.Routes.split(',');
+    if (buses[0] === '') {
+        buses = [NO_SERVICE_STOP];
+    }
+
+    setBusList(buses);
+}
 
 function markCurrentLocation(currentLocationMarker) {
     if (currentLocationMarker.lat !== '') {

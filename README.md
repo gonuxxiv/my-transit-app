@@ -8,7 +8,17 @@ Tools used for this project:
 
 ## Next Step
 
-    - Get translink API and place markers for all bus stops.
+    - Enable onclick to bus stops and show their details (styling later).
+    - After clicking one of the bus buttons, the InfoWindow would automatically close, hide all 
+    bus stop markers, and display nearest bus (using lat, lng) and its arrival time (in countdown) shown above the bus icon. Also, its path will get highlighted.
+
+
+## Problems
+
+    - Not able to load markers as the map pans to the current location.
+    - The bus stops show up a bit slow.
+    - Not able to load all bus stops at once
+
 
 ## Available Scripts
 
