@@ -1,7 +1,7 @@
 // import { Map, GoogleApiWrapper } from 'google-maps-react';
 import React, {Component, useEffect} from 'react';
 import dark from './GoogleMapStyles';
-import {GoogleMap, useLoadScript, Marker, InfoWindow} from '@react-google-maps/api';
+import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsService} from '@react-google-maps/api';
 import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
 
@@ -69,9 +69,11 @@ export default function Map({value}) {
 
     const [selectedStop, setSelectedStop] = React.useState(null);
 
+    const [selectedBus, setSelectedBus] = React.useState(null);
+
     const [busList, setBusList] = React.useState([]);
 
-    const [busData, setBusData] = React.useState(null);
+    const [busData, setBusData] = React.useState([]);
 
     const fetchLocationApiData = () => {
         if (newPos !== undefined) {
@@ -116,6 +118,7 @@ export default function Map({value}) {
                 onClick={() => {}}
                 onLoad={onMapLoad}
             >
+                
                 {markCurrentLocation(currentLocationMarker)}
                 {
                     data.map((stop) => {
@@ -134,6 +137,33 @@ export default function Map({value}) {
                         />
                     })
                 }
+                {
+                    busData.map((bus) => {
+                        console.log(bus)
+                        return (
+                            <Marker 
+                                position={{lat: bus.Latitude, lng: bus.Longitude}}
+                                onClick={() => {
+                                    setSelectedBus(bus);
+                                }}
+                            />
+                        )
+                    })
+                   
+                }
+                {selectedBus && (
+                    <InfoWindow
+                        position={{
+                            lat: selectedBus.Latitude,
+                            lng: selectedBus.Longitude
+                        }}
+                        onCloseClick={() => {
+                            setSelectedBus(null);
+                        }}
+                    >
+                        <h1>{selectedBus.VehicleNo}</h1>
+                    </InfoWindow>
+                )}
                 {selectedStop && (
                     <InfoWindow 
                         position={{
@@ -157,7 +187,10 @@ export default function Map({value}) {
                                 }
                                 return (
                                     <button
-                                        onClick={getSpecifiedBus(bus, selectedStop.StopNo)}
+                                        onClick={() => {
+                                            fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
+                                            displayClickedBus(setSelectedStop, setData)
+                                        }}
                                     >
                                         {bus}
                                     </button>
@@ -171,17 +204,23 @@ export default function Map({value}) {
     );
 }
 
-function fetchBusApiData(bus, stopNo) {
+function fetchBusApiData(bus, stopNo, setBusData, busData) {
     if (bus !== undefined && stopNo !== undefined) {
         axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
-            .then((response) => console.log(response.data));        
+            .then((response) => setBusData(response.data));        
     }
-
-    // console.log(busData);
+    // console.log(busData)
 }
 
-function getSpecifiedBus(bus, stopNo) {
-    fetchBusApiData(bus, stopNo);
+function fetchArrivalTimeApiData(stopNum, busNum) {
+    axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=uR1LJ7QcIfeLZmaQ0oPs&routeNo=" + busNum)
+        .then((response) => console.log(response.data));  
+}
+
+function displayClickedBus(setSelectedStop, setData) {
+
+    setSelectedStop(null);
+    setData([]);
 }
 
 function storeBusList(busStop, setBusList) {
