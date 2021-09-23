@@ -1,13 +1,15 @@
 // import { Map, GoogleApiWrapper } from 'google-maps-react';
 import React, {Component, useEffect} from 'react';
 import dark from './GoogleMapStyles';
-import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsService, DirectionsRenderer} from '@react-google-maps/api';
+import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsRenderer, DirectionsService} from '@react-google-maps/api';
 // import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
 
 // const translinkAPI = 'uR1LJ7QcIfeLZmaQ0oPs';
 
 const NO_SERVICE_STOP = "There are currently no buses scheduled for this stop.";
+
+const DIRECTIONS_OPTIONS = { suppressMarkers: true, preserveViewport: true }
 
 const libraries = ["places"]
 const mapContainerStyle = {
@@ -79,9 +81,41 @@ export default function Map({value}) {
 
     const [nextBusEstimate, setNextBusEstimate] = React.useState([]);
 
-    const [direction, setDirection]  = React.useState(null);
+    const [directions, setDirections]  = React.useState();
 
-    const directionsService = DirectionsService;
+    const directionsService = new window.google.maps.DirectionsService();
+
+    const DIRECTION_REQUEST_DELAY = 300
+
+    const delay = (time) =>
+        new Promise((resolve) => {
+            setTimeout(() => {
+            resolve()
+            }, time)
+    })
+
+    // const directionsRequest = ({ DirectionsService, origin, destination }) =>
+    //     new Promise((resolve, reject) => {
+    //         DirectionsService.route(
+    //             {
+    //                 origin: new window.google.maps.LatLng(origin.Latitude, origin.Longitude),
+    //                 destination: new window.google.maps.LatLng(
+    //                 destination.Latitude,
+    //                 destination.Longitude
+    //                 ),
+    //                 travelMode: window.google.maps.TravelMode.DRIVING,
+    //             },
+    //             (result, status) => {
+    //                 if (status === window.google.maps.DirectionsStatus.OK) {
+    //                     resolve(result)
+    //                     setDirections(result)
+    //                     console.log(result);
+    //                 } else {
+    //                     reject(status)
+    //                 }
+    //             }
+    //         )
+    // })
 
     const fetchLocationApiData = async () => {
         if (newPos !== undefined) {
@@ -99,9 +133,13 @@ export default function Map({value}) {
 
     async function fetchArrivalTimeApiData(stopNum, busNum, setNextBusEstimate) {
         busNum = busNum.replace(/\s+/g, '');
-     
+        
         await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=uR1LJ7QcIfeLZmaQ0oPs&routeNo=" + busNum)
-            .then((response) => setNextBusEstimate(response.data));  
+            .then((response) => setNextBusEstimate(response.data))
+            // .then(() => {
+            //     console.log(nextBusEstimate);
+            // })
+        
     }
 
     // useEffect(() => {
@@ -114,8 +152,11 @@ export default function Map({value}) {
         const position = mapRef.current.getCenter().toJSON();
         setNewPos(position);
         
-        if (busData.length < 1) {
-            fetchLocationApiData(); 
+        if (busData.length < 1 && busStopData.length !== 1) {
+            setTimeout(() => {
+                fetchLocationApiData(); 
+            }, 300)
+            
         }
     }
 
@@ -150,6 +191,7 @@ export default function Map({value}) {
                             onClick={() => {
                                 setSelectedStop(stop);
                                 storeBusList(stop, setBusList);
+                                setBusStopData([stop]);
                             }}
                         />
                     })
@@ -165,23 +207,31 @@ export default function Map({value}) {
                                     scaledSize: new window.google.maps.Size(35, 35),
                                 }}
                                 onClick={() => {
-                                    setSelectedBus(bus);
+                                    console.log("buss")
                                     console.log(bus);
-                                    console.log(selectedStop);
-                                    // directionsService.route(
-                                    //     {
-                                    //         origin: selectedBus.Latitude + ',' + selectedBus.Longitude,
-                                    //         destination: selectedStop.Latitude + ',' + selectedStop.Longitude,
-                                    //         travelMode: "TRANSIT"
-                                    //     },
-                                    //     (result, status) => {
-                                    //         if (status === window.google.maps.DirectionsStatus.OK) {
-                                    //             setDirection(result);
-                                    //           } else {
-                                    //             console.log('error');
-                                    //           }
-                                    //     }
-                                    // )
+                                    if (selectedBus === null) {
+                                        setSelectedBus(bus);
+
+                                        directionsService.route(
+                                            {
+                                                origin: new window.google.maps.LatLng(bus.Latitude, bus.Longitude),
+                                                destination: new window.google.maps.LatLng(selectedStop.Latitude, selectedStop.Longitude),
+                                                travelMode: "TRANSIT"
+                                            },
+                                            (result, status) => {
+                                                if (status === window.google.maps.DirectionsStatus.OK) {
+                                                    let haha = JSON.stringify(result)
+                                                    console.log(result["routes"][0]["legs"][0]["duration"]["text"]);
+                                                    setDirections(result);
+                                                } else {
+                                                    console.log('error');
+                                                }
+                                            }
+                                        )
+                                    }
+                                    // directionsRequest(DirectionsService, bus, selectedStop)
+                                    // console.log(bus);
+                                    // console.log(selectedStop);
                                 }}
                             />
                         )
@@ -196,9 +246,13 @@ export default function Map({value}) {
                         }}
                         onCloseClick={() => {
                             setSelectedBus(null);
+                            setDirections(null);
+                        }}
+                        options={{
+                            pixelOffset: new window.google.maps.Size(0, -35)
                         }}
                     >
-                        <h1>{selectedBus.VehicleNo}</h1>
+                        <p>{directions && directions["routes"][0]["legs"][0]["duration"]["text"]}</p>
                     </InfoWindow>
                 )}
     
@@ -216,12 +270,16 @@ export default function Map({value}) {
                             }}
                         >
                             <div>
-                                {nextBusEstimate.length > 0 ? (
+                                {sortArray(nextBusEstimate)}
+                                {nextBusEstimate && (
                                 nextBusEstimate[0]["Schedules"].map((nextBus) => {
                                     return (
+                                        <div>
                                         <p>{nextBus.ExpectedLeaveTime}</p>
+                                        <p>{nextBus.Destination}</p>
+                                        </div>
                                     )
-                                })) : (console.log(nextBusEstimate))}
+                                }))}
                                 <button onClick={() => {
                                     setBusData([]);
                                 }}>Go Back</button>
@@ -236,6 +294,9 @@ export default function Map({value}) {
                         onCloseClick={() => {
                             setSelectedStop(null);
                             fetchLocationApiData();
+                        }}
+                        options={{
+                            pixelOffset: new window.google.maps.Size(0, -35)
                         }}
                     >
                         <div>
@@ -253,9 +314,11 @@ export default function Map({value}) {
                                     <button
                                         key={bus}
                                         onClick={() => {
-                                            Promise.all(
-                                                [fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData),
-                                                    fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)])
+                                            fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)
+                                            setTimeout(() => {
+                                                fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
+                                            }, 300)
+                                            
                                             // fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
                                             displayClickedBus(selectedStop, setSelectedStop, setBusStopData)
                                             // fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)
@@ -269,12 +332,27 @@ export default function Map({value}) {
                     </InfoWindow>)
                 )}
 
-                {/* {direction && (
-                    <DirectionsRenderer directions={direction} />
-                )} */}
+                {directions && (
+                    <DirectionsRenderer 
+                        directions={directions} 
+                        options={DIRECTIONS_OPTIONS}
+                    />
+                )}
             </GoogleMap>
         </div>
     );
+}
+
+function sortArray(nextBusEstimate) {
+    console.log("estimate")
+    console.log(nextBusEstimate);
+    setTimeout(() => {
+        nextBusEstimate[0]["Schedules"].sort(function(a, b) {
+            return a.ExpectedCountdown - b.ExpectedCountdown;
+        })
+        // console.log(nextBusEstimate);
+    }, 2000)
+ 
 }
 
 async function fetchBusApiData(bus, stopNo, setBusData, busData) {
@@ -284,7 +362,7 @@ async function fetchBusApiData(bus, stopNo, setBusData, busData) {
         await axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
             .then((response) => setBusData(response.data));        
     }
-    console.log(busData)
+    // console.log(busData)
 }
 
 function displayClickedBus(selectedStop, setSelectedStop, setBusStopData) {
@@ -331,8 +409,10 @@ function currentLocation(panTo, setCurrentLocationMarker, handleCenterChanged) {
                     time: new Date(),
                 })
             }, () => null);
-
-            handleCenterChanged();
+            setTimeout(() => {
+                console.log("change")
+                handleCenterChanged();
+            }, 4000)
         }}>
             <img src="locate.svg" alt="locate me icon"/>
         </button>

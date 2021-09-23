@@ -10,11 +10,8 @@
 
 ## Next Step
 
-    - After clicking one of the bus buttons, the InfoWindow would automatically close, hide all 
-    bus stop markers, and display nearest bus (using lat, lng) and its arrival time (in countdown) shown above the bus icon. Also, its path will get highlighted. (pan if needed to)
-    - Retrieve bus location in real-time
-    - Use directionService and DirectionRenderer to show direction from where the bus is to the stop
-    - Style detail area.
+    - Style detail areas.
+    - Fix minor bugs.
     - Add search function
     - Implement real time API update 
 
