@@ -1,11 +1,11 @@
 // import { Map, GoogleApiWrapper } from 'google-maps-react';
 import React, {Component, useEffect} from 'react';
 import dark from './GoogleMapStyles';
-import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsService} from '@react-google-maps/api';
-import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
+import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsService, DirectionsRenderer} from '@react-google-maps/api';
+// import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
 
-const translinkAPI = 'uR1LJ7QcIfeLZmaQ0oPs';
+// const translinkAPI = 'uR1LJ7QcIfeLZmaQ0oPs';
 
 const NO_SERVICE_STOP = "There are currently no buses scheduled for this stop.";
 
@@ -19,7 +19,7 @@ const center = {
     lng: -123.1207
 }
 
-let currentCenter = center;
+// let currentCenter = center;
 
 const options = {
     styles: dark,
@@ -28,9 +28,9 @@ const options = {
     clickableIcons: false,
 }
 
-let animateTrigger = 1;
+// let animateTrigger = 1;
 
-let ref;
+// let ref;
 
 export default function Map({value}) {
     const { isLoaded, loadError } = useLoadScript({
@@ -57,25 +57,33 @@ export default function Map({value}) {
         time: ''
     });
 
-    const [currentPositon, setCurrentPosition] = React.useState();
+    // const [currentPositon, setCurrentPosition] = React.useState();
 
-    const [data, setData] = React.useState([]);
+    const [busStopData, setBusStopData] = React.useState([]);
     
-    const [stopMarkers, setStopMarkers] = React.useState([]);
+    // const [stopMarkers, setStopMarkers] = React.useState([]);
 
     const [newPos, setNewPos] = React.useState();
 
-    const [clickedLocation, setClickedLocation] = React.useState(false);
+    // const [clickedLocation, setClickedLocation] = React.useState(false);
 
     const [selectedStop, setSelectedStop] = React.useState(null);
 
     const [selectedBus, setSelectedBus] = React.useState(null);
 
+    // list of bus routes for the specific stop
     const [busList, setBusList] = React.useState([]);
 
+    // The buses of the specific route
     const [busData, setBusData] = React.useState([]);
 
-    const fetchLocationApiData = () => {
+    const [nextBusEstimate, setNextBusEstimate] = React.useState([]);
+
+    const [direction, setDirection]  = React.useState(null);
+
+    const directionsService = DirectionsService;
+
+    const fetchLocationApiData = async () => {
         if (newPos !== undefined) {
             // console.log(newPos)
             let lat = newPos.lat.toString();
@@ -83,24 +91,32 @@ export default function Map({value}) {
             lat = lat.slice(0, (lat.indexOf(".")) + 7);
             lng = lng.slice(0, (lng.indexOf(".")) + 7);
 
-            axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=" + lat + "&long=" + lng + "&radius=2000")
-            .then((response) => setData(response.data));
-            // console.log(data);
+            await axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=" + lat + "&long=" + lng + "&radius=2000")
+                .then((response) => setBusStopData(response.data));
+            // console.log(busStopData);
         } 
+    }
+
+    async function fetchArrivalTimeApiData(stopNum, busNum, setNextBusEstimate) {
+        busNum = busNum.replace(/\s+/g, '');
+     
+        await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=uR1LJ7QcIfeLZmaQ0oPs&routeNo=" + busNum)
+            .then((response) => setNextBusEstimate(response.data));  
     }
 
     // useEffect(() => {
     //     fetchBusApiData();
     // }, []);
     
-      function handleCenterChanged() {
+    function handleCenterChanged() {
         if (!mapRef.current) return;
 
         const position = mapRef.current.getCenter().toJSON();
         setNewPos(position);
         
-        // console.log(newPos);
-        fetchLocationApiData();
+        if (busData.length < 1) {
+            fetchLocationApiData(); 
+        }
     }
 
     if(loadError) return "Error loading maps";
@@ -121,11 +137,12 @@ export default function Map({value}) {
                 
                 {markCurrentLocation(currentLocationMarker)}
                 {
-                    data.map((stop) => {
+                    busStopData.map((stop) => {
                         // console.log(stop);
                         return <Marker 
                             key={stop.StopNo}
                             position={{lat: stop.Latitude, lng: stop.Longitude}}
+                            pixelOffset={new window.google.maps.Size(0, 20)}
                             icon={{
                                 url: '/bus-stop2.png',
                                 scaledSize: new window.google.maps.Size(45, 45),
@@ -139,12 +156,32 @@ export default function Map({value}) {
                 }
                 {
                     busData.map((bus) => {
-                        console.log(bus)
                         return (
                             <Marker 
+                                key={bus.BusNo}
                                 position={{lat: bus.Latitude, lng: bus.Longitude}}
+                                icon={{
+                                    url: '/bus.png',
+                                    scaledSize: new window.google.maps.Size(35, 35),
+                                }}
                                 onClick={() => {
                                     setSelectedBus(bus);
+                                    console.log(bus);
+                                    console.log(selectedStop);
+                                    // directionsService.route(
+                                    //     {
+                                    //         origin: selectedBus.Latitude + ',' + selectedBus.Longitude,
+                                    //         destination: selectedStop.Latitude + ',' + selectedStop.Longitude,
+                                    //         travelMode: "TRANSIT"
+                                    //     },
+                                    //     (result, status) => {
+                                    //         if (status === window.google.maps.DirectionsStatus.OK) {
+                                    //             setDirection(result);
+                                    //           } else {
+                                    //             console.log('error');
+                                    //           }
+                                    //     }
+                                    // )
                                 }}
                             />
                         )
@@ -164,7 +201,33 @@ export default function Map({value}) {
                         <h1>{selectedBus.VehicleNo}</h1>
                     </InfoWindow>
                 )}
+    
                 {selectedStop && (
+                    busData.length > 0 ? (
+                        <InfoWindow
+                            position={{
+                                lat: selectedStop.Latitude, 
+                                lng: selectedStop.Longitude
+                            }}
+                            onCloseClick={() => {
+                                setSelectedStop(null);
+                                setBusData([]);
+                                fetchLocationApiData();
+                            }}
+                        >
+                            <div>
+                                {nextBusEstimate.length > 0 ? (
+                                nextBusEstimate[0]["Schedules"].map((nextBus) => {
+                                    return (
+                                        <p>{nextBus.ExpectedLeaveTime}</p>
+                                    )
+                                })) : (console.log(nextBusEstimate))}
+                                <button onClick={() => {
+                                    setBusData([]);
+                                }}>Go Back</button>
+                            </div>
+                        </InfoWindow>
+                    ) : (
                     <InfoWindow 
                         position={{
                             lat: selectedStop.Latitude, 
@@ -172,12 +235,13 @@ export default function Map({value}) {
                         }}
                         onCloseClick={() => {
                             setSelectedStop(null);
+                            fetchLocationApiData();
                         }}
                     >
                         <div>
                             <div>
-                                <h1>{selectedStop.StopNo}</h1> 
-                                <h2>BY</h2> {selectedStop.AtStreet} <h2>ON</h2> {selectedStop.OnStreet}
+                                <h3>{selectedStop.StopNo} {selectedStop.Name}</h3> 
+                                <strong>{selectedStop.AtStreet} {"&"} {selectedStop.OnStreet}</strong>
                             </div>
                             {busList.map((bus) => {
                                 if (bus === NO_SERVICE_STOP) {
@@ -187,9 +251,14 @@ export default function Map({value}) {
                                 }
                                 return (
                                     <button
+                                        key={bus}
                                         onClick={() => {
-                                            fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
-                                            displayClickedBus(setSelectedStop, setData)
+                                            Promise.all(
+                                                [fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData),
+                                                    fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)])
+                                            // fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
+                                            displayClickedBus(selectedStop, setSelectedStop, setBusStopData)
+                                            // fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)
                                         }}
                                     >
                                         {bus}
@@ -197,30 +266,30 @@ export default function Map({value}) {
                                 )
                             })}
                         </div>
-                    </InfoWindow>
+                    </InfoWindow>)
                 )}
+
+                {/* {direction && (
+                    <DirectionsRenderer directions={direction} />
+                )} */}
             </GoogleMap>
         </div>
     );
 }
 
-function fetchBusApiData(bus, stopNo, setBusData, busData) {
+async function fetchBusApiData(bus, stopNo, setBusData, busData) {
+    bus = bus.replace(/\s+/g, '');
+   
     if (bus !== undefined && stopNo !== undefined) {
-        axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
+        await axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
             .then((response) => setBusData(response.data));        
     }
-    // console.log(busData)
+    console.log(busData)
 }
 
-function fetchArrivalTimeApiData(stopNum, busNum) {
-    axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=uR1LJ7QcIfeLZmaQ0oPs&routeNo=" + busNum)
-        .then((response) => console.log(response.data));  
-}
-
-function displayClickedBus(setSelectedStop, setData) {
-
-    setSelectedStop(null);
-    setData([]);
+function displayClickedBus(selectedStop, setSelectedStop, setBusStopData) {
+    setBusStopData([selectedStop]);
+    // setSelectedStop(null);
 }
 
 function storeBusList(busStop, setBusList) {
@@ -249,9 +318,9 @@ function markCurrentLocation(currentLocationMarker) {
 
 function currentLocation(panTo, setCurrentLocationMarker, handleCenterChanged) {
     return (
-        <button className="locate" onClick={() => {
+        <button className="locate" onClick={ async () => {
             
-            navigator.geolocation.getCurrentPosition((position) => {
+            await navigator.geolocation.getCurrentPosition( (position) => {
                 panTo({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
@@ -262,40 +331,10 @@ function currentLocation(panTo, setCurrentLocationMarker, handleCenterChanged) {
                     time: new Date(),
                 })
             }, () => null);
+
             handleCenterChanged();
         }}>
             <img src="locate.svg" alt="locate me icon"/>
         </button>
     );
 }
-
-// function loadAllBusStops() {
-//     fetch('https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=49.248523&long=-123.108800&radius=2000')
-//         .then(response => response.json())
-//         .then(data => console.log(data));
-// }
-
-
-
-// export class MapContainer extends Component {
-    
-//     render() {
-//         const value = this.props.value;
-//         return (
-//             <div style={value === 0 ? { width: "100%", height: "100%", display: "block"} : {display: "none"}}>
-//                 <Map
-//                     google={this.props.google}
-//                     zoom={8}
-//                     styles={dark}
-//                     initialCenter={{ lat: 49.2827, lng: -123.1207}}
-//                     options={options}
-//                 />
-//             </div>
-//         );
-//     }
-// }
-
-
-// export default GoogleApiWrapper({
-//     apiKey: 'AIzaSyAoYmRYMoQADvN5TEms7pnJxEcji7Fl-P8'
-// })(MapContainer);
