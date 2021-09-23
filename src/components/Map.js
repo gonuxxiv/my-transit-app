@@ -214,7 +214,7 @@ export default function Map({value}) {
                                             {
                                                 origin: new window.google.maps.LatLng(bus.Latitude, bus.Longitude),
                                                 destination: new window.google.maps.LatLng(selectedStop.Latitude, selectedStop.Longitude),
-                                                travelMode: "DRIVING"
+                                                travelMode: "TRANSIT"
                                             },
                                             (result, status) => {
                                                 if (status === window.google.maps.DirectionsStatus.OK) {
