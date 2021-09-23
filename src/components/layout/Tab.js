@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import MapContainer from '../Map';
 import './Tab.css';
+import ContactUs from '../ContactUs';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -61,8 +62,8 @@ export default function SimpleTabs() {
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} centered>
-          <Tab label="Map" {...a11yProps(0)} />
-          <Tab label="Note" {...a11yProps(1)} />
+          <Tab label="Transit" {...a11yProps(0)} />
+          <Tab label="Contact Us" {...a11yProps(1)} />
           {/* <Tab label="Item Three" {...a11yProps(2)} /> */}
         </Tabs>
       </AppBar>
@@ -70,7 +71,7 @@ export default function SimpleTabs() {
       </TabPanel>
       <MapContainer value={value} />
       <TabPanel value={value} index={1}>
-      <img src="current-location-icon.svg" alt="locate me icon"/>
+        <ContactUs />
       </TabPanel>
     </div>
   );

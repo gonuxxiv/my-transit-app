@@ -207,8 +207,6 @@ export default function Map({value}) {
                                     scaledSize: new window.google.maps.Size(35, 35),
                                 }}
                                 onClick={() => {
-                                    console.log("buss")
-                                    console.log(bus);
                                     if (selectedBus === null) {
                                         setSelectedBus(bus);
 
@@ -216,12 +214,10 @@ export default function Map({value}) {
                                             {
                                                 origin: new window.google.maps.LatLng(bus.Latitude, bus.Longitude),
                                                 destination: new window.google.maps.LatLng(selectedStop.Latitude, selectedStop.Longitude),
-                                                travelMode: "TRANSIT"
+                                                travelMode: "DRIVING"
                                             },
                                             (result, status) => {
                                                 if (status === window.google.maps.DirectionsStatus.OK) {
-                                                    let haha = JSON.stringify(result)
-                                                    console.log(result["routes"][0]["legs"][0]["duration"]["text"]);
                                                     setDirections(result);
                                                 } else {
                                                     console.log('error');
@@ -267,6 +263,7 @@ export default function Map({value}) {
                                 setSelectedStop(null);
                                 setBusData([]);
                                 fetchLocationApiData();
+                                setDirections(null);
                             }}
                         >
                             <div>
@@ -282,6 +279,8 @@ export default function Map({value}) {
                                 }))}
                                 <button onClick={() => {
                                     setBusData([]);
+                                    setDirections(null);
+                                    setSelectedBus(null);
                                 }}>Go Back</button>
                             </div>
                         </InfoWindow>
@@ -344,8 +343,6 @@ export default function Map({value}) {
 }
 
 function sortArray(nextBusEstimate) {
-    console.log("estimate")
-    console.log(nextBusEstimate);
     setTimeout(() => {
         nextBusEstimate[0]["Schedules"].sort(function(a, b) {
             return a.ExpectedCountdown - b.ExpectedCountdown;
@@ -410,7 +407,6 @@ function currentLocation(panTo, setCurrentLocationMarker, handleCenterChanged) {
                 })
             }, () => null);
             setTimeout(() => {
-                console.log("change")
                 handleCenterChanged();
             }, 4000)
         }}>
