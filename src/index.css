@@ -14,9 +14,10 @@ code {
 
 .locate {
   position: absolute;
-  bottom: 7rem;
+  bottom: 7.9rem;
   right: 0.58rem;
-  background: none;
+  background: white;
+  border-radius: 5px;
   border: none;
   z-index: 10;
 }
