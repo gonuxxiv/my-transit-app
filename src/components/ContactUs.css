@@ -29,7 +29,7 @@
   height: 94vh;
 }
 
-p {
+#prompt {
   font-weight: bolder;
   color: #16ab39;
   text-shadow: 1.5px 1.5px white;
@@ -63,7 +63,7 @@ Form {
     top: 13px;
   }
 
-  p {
+ #prompt {
     font-size: 6.1vw;
     top: 40px;
     /* font-size: 25px; */
