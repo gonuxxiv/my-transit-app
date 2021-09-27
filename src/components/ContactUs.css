@@ -1,0 +1,70 @@
+.form-wrapper {
+    text-align: center;
+    max-width: 500px;
+    margin: auto;
+    position: relative;
+    top: 50px;
+  }
+
+.main-wrapper {
+  position: relative; 
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-wrapper::before {
+  content: "";
+  background-image: url('../images/bus-stop-vector.jpg');
+  background-size: cover;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  opacity: 0.75;
+  z-index: -1;
+  height: 94vh;
+}
+
+p {
+  font-weight: bolder;
+  color: #16ab39;
+  text-shadow: 1.5px 1.5px white;
+  font-size: 35px;
+  text-align: center;
+  position: relative;
+  top: 20px;
+}
+
+Form {
+    border: 1.5px solid rgb(191, 191, 191);
+    border-radius: 10px;
+    padding: 20px;
+    height: 557px;
+}
+
+#form-textarea-control-opinion {
+  height: 300px;
+  resize: none;
+}
+
+
+
+@media screen and (max-width: 600px) {
+  .form-wrapper {
+    max-width: 90.5vw;
+    top: 15px;
+  }
+
+  #form {
+    top: 13px;
+  }
+
+  p {
+    font-size: 6.1vw;
+    /* font-size: 25px; */
+  }
+}

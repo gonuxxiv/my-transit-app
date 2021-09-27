@@ -1,48 +1,79 @@
-import React, { useState } from "react";
+import { Form, Input, TextArea, Button } from 'semantic-ui-react';
+import './ContactUs.css';
+import React from 'react';
+import emailjs from 'emailjs-com';
+import Swal from 'sweetalert2';
+import bgImg from "../images/bus-stop-vector.jpg";
+
+
+const SERVICE_ID = process.env.REACT_APP_SERVICE_ID;
+const TEMPLATE_ID = process.env.REACT_APP_TEMPLATE_ID;
+const USER_ID = process.env.REACT_APP_USER_ID;
 
 const ContactForm = () => {
-  const [status, setStatus] = useState("Submit");
-  const handleSubmit = async (e) => {
+  const handleOnSubmit = (e) => {
     e.preventDefault();
-    setStatus("Sending...");
-    const { name, email, message } = e.target.elements;
-    let details = {
-      name: name.value,
-      email: email.value,
-      message: message.value,
-    };
-    let response = await fetch("http://localhost:5000/contact", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-      },
-      body: JSON.stringify(details),
-    });
-    setStatus("Submit");
-    let result = await response.json();
-    alert(result.status);
+    emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, e.target, USER_ID)
+      .then((result) => {
+        console.log(result.text);
+        Swal.fire({
+          icon: 'success',
+          title: 'Message Sent Successfully'
+        })
+      }, (error) => {
+        console.log(error.text);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops, something went wrong',
+          text: error.text,
+        })
+      });
+    e.target.reset()
   };
+
   return (
-    <div>
-        <h2>TELL US ABOUT YOUR EXPERIENCE</h2>
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="name">Name:</label>
-                <input type="text" id="name" required />
-            </div>
-            <div>
-                <label htmlFor="email">Email:</label>
-                <input type="email" id="email" required />
-            </div>
-            <div>
-                <label htmlFor="message">Message:</label>
-                <textarea id="message" required />
-            </div>
-            <button type="submit">{status}</button>
-        </form> 
+    <div id="main-wrapper" style={{
+      background: `linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.1)), url(${bgImg})`, 
+      backgroundSize: "cover", 
+      zIndex: -1,
+      height: "93.4vh"
+      }}>
+      <p>Tell Us About Your Experience🌟</p>
+      <div className="form-wrapper">
+        <Form id="form" onSubmit={handleOnSubmit}>
+          <Form.Field
+            id='form-input-control-email'
+            control={Input}
+            label='Email'
+            name='from_email'
+            placeholder='Email…'
+            required
+            icon='mail'
+            iconPosition='left'
+          />
+          <Form.Field
+            id='form-input-control-last-name'
+            control={Input}
+            label='Name'
+            name='from_name'
+            placeholder='Name…'
+            required
+            icon='user circle'
+            iconPosition='left'
+          />
+          <Form.Field
+            id='form-textarea-control-opinion'
+            control={TextArea}
+            label='Message'
+            name='message'
+            placeholder='Message…'
+            required
+          />
+          <Button id="submit" type='submit' color='green'>Submit</Button>
+        </Form>
+      </div>
     </div>
-    
   );
-};
+}
 
 export default ContactForm;

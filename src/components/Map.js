@@ -5,7 +5,9 @@ import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsRenderer, Direct
 // import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
 
-// const translinkAPI = 'uR1LJ7QcIfeLZmaQ0oPs';
+
+const GOOGLE_MAP_API = process.env.REACT_APP_GOOGLE_MAP_API;
+const TRANSLINK_API = process.env.REACT_APP_TRANSLINK_API;
 
 const NO_SERVICE_STOP = "There are currently no buses scheduled for this stop.";
 
@@ -30,13 +32,9 @@ const options = {
     clickableIcons: false,
 }
 
-// let animateTrigger = 1;
-
-// let ref;
-
 export default function Map({value}) {
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: 'AIzaSyAoYmRYMoQADvN5TEms7pnJxEcji7Fl-P8',
+        googleMapsApiKey: GOOGLE_MAP_API,
         libraries,
     })
 
@@ -125,8 +123,8 @@ export default function Map({value}) {
             lat = lat.slice(0, (lat.indexOf(".")) + 7);
             lng = lng.slice(0, (lng.indexOf(".")) + 7);
 
-            await axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=uR1LJ7QcIfeLZmaQ0oPs&lat=" + lat + "&long=" + lng + "&radius=2000")
-                .then((response) => setBusStopData(response.data));
+            await axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=" + TRANSLINK_API + "&lat=" + lat + "&long=" + lng + "&radius=2000")
+                .then(async (response) => await setBusStopData(response.data));
             // console.log(busStopData);
         } 
     }
@@ -134,8 +132,8 @@ export default function Map({value}) {
     async function fetchArrivalTimeApiData(stopNum, busNum, setNextBusEstimate) {
         busNum = busNum.replace(/\s+/g, '');
         
-        await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=uR1LJ7QcIfeLZmaQ0oPs&routeNo=" + busNum)
-            .then((response) => setNextBusEstimate(response.data))
+        await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=" + TRANSLINK_API + "&routeNo=" + busNum)
+            .then(async (response) => await setNextBusEstimate(response.data))
             // .then(() => {
             //     console.log(nextBusEstimate);
             // })
@@ -264,6 +262,7 @@ export default function Map({value}) {
                                 setBusData([]);
                                 fetchLocationApiData();
                                 setDirections(null);
+                                setSelectedBus(null);
                             }}
                         >
                             <div>
@@ -356,8 +355,8 @@ async function fetchBusApiData(bus, stopNo, setBusData, busData) {
     bus = bus.replace(/\s+/g, '');
    
     if (bus !== undefined && stopNo !== undefined) {
-        await axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=uR1LJ7QcIfeLZmaQ0oPs&stopNo=" + stopNo + "&routeNo=" + bus)
-            .then((response) => setBusData(response.data));        
+        await axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=" + TRANSLINK_API + "&stopNo=" + stopNo + "&routeNo=" + bus)
+            .then(async (response) => await setBusData(response.data));        
     }
     // console.log(busData)
 }
