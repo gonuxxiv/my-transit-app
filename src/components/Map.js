@@ -83,38 +83,6 @@ export default function Map({value}) {
 
     const directionsService = new window.google.maps.DirectionsService();
 
-    const DIRECTION_REQUEST_DELAY = 300
-
-    const delay = (time) =>
-        new Promise((resolve) => {
-            setTimeout(() => {
-            resolve()
-            }, time)
-    })
-
-    // const directionsRequest = ({ DirectionsService, origin, destination }) =>
-    //     new Promise((resolve, reject) => {
-    //         DirectionsService.route(
-    //             {
-    //                 origin: new window.google.maps.LatLng(origin.Latitude, origin.Longitude),
-    //                 destination: new window.google.maps.LatLng(
-    //                 destination.Latitude,
-    //                 destination.Longitude
-    //                 ),
-    //                 travelMode: window.google.maps.TravelMode.DRIVING,
-    //             },
-    //             (result, status) => {
-    //                 if (status === window.google.maps.DirectionsStatus.OK) {
-    //                     resolve(result)
-    //                     setDirections(result)
-    //                     console.log(result);
-    //                 } else {
-    //                     reject(status)
-    //                 }
-    //             }
-    //         )
-    // })
-
     const fetchLocationApiData = async () => {
         if (newPos !== undefined) {
             // console.log(newPos)
@@ -124,7 +92,7 @@ export default function Map({value}) {
             lng = lng.slice(0, (lng.indexOf(".")) + 7);
 
             await axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=" + TRANSLINK_API + "&lat=" + lat + "&long=" + lng + "&radius=2000")
-                .then(async (response) => await setBusStopData(response.data));
+                .then((response) => setBusStopData(response.data));
             // console.log(busStopData);
         } 
     }
@@ -133,7 +101,7 @@ export default function Map({value}) {
         busNum = busNum.replace(/\s+/g, '');
         
         await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=" + TRANSLINK_API + "&routeNo=" + busNum)
-            .then(async (response) => await setNextBusEstimate(response.data))
+            .then((response) => setNextBusEstimate(response.data))
             // .then(() => {
             //     console.log(nextBusEstimate);
             // })
@@ -151,10 +119,7 @@ export default function Map({value}) {
         setNewPos(position);
         
         if (busData.length < 1 && busStopData.length !== 1) {
-            setTimeout(() => {
-                fetchLocationApiData(); 
-            }, 300)
-            
+            fetchLocationApiData();   
         }
     }
 
@@ -356,7 +321,7 @@ async function fetchBusApiData(bus, stopNo, setBusData, busData) {
    
     if (bus !== undefined && stopNo !== undefined) {
         await axios.get("https://api.translink.ca/rttiapi/v1/buses?apikey=" + TRANSLINK_API + "&stopNo=" + stopNo + "&routeNo=" + bus)
-            .then(async (response) => await setBusData(response.data));        
+            .then((response) => setBusData(response.data));        
     }
     // console.log(busData)
 }
@@ -405,9 +370,7 @@ function currentLocation(panTo, setCurrentLocationMarker, handleCenterChanged) {
                     time: new Date(),
                 })
             }, () => null);
-            setTimeout(() => {
-                handleCenterChanged();
-            }, 4000)
+            handleCenterChanged();
         }}>
             <img src="locate.svg" alt="locate me icon"/>
         </button>
