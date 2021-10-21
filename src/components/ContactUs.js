@@ -36,7 +36,7 @@ const ContactForm = () => {
       background: `linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.1)), url(${bgImg})`, 
       backgroundSize: "cover", 
       zIndex: -1,
-      height: "93.4vh"
+      height: "100%"
       }}>
       <p id="prompt">Tell Us About Your Experience🌟</p>
       <div className="form-wrapper">
