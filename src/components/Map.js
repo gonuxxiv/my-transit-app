@@ -93,7 +93,6 @@ export default function Map({value}) {
 
             await axios.get("https://api.translink.ca/rttiapi/v1/stops?apikey=" + TRANSLINK_API + "&lat=" + lat + "&long=" + lng + "&radius=2000")
                 .then((response) => setBusStopData(response.data));
-            // console.log(busStopData);
         } 
     }
 
@@ -101,11 +100,7 @@ export default function Map({value}) {
         busNum = busNum.replace(/\s+/g, '');
         
         await axios.get("https://api.translink.ca/rttiapi/v1/stops/" + stopNum + "/estimates?apikey=" + TRANSLINK_API + "&routeNo=" + busNum)
-            .then((response) => setNextBusEstimate(response.data))
-            // .then(() => {
-            //     console.log(nextBusEstimate);
-            // })
-        
+            .then((response) => setNextBusEstimate(response.data))    
     }
 
     // useEffect(() => {
@@ -119,7 +114,9 @@ export default function Map({value}) {
         setNewPos(position);
         
         if (busData.length < 1 && busStopData.length !== 1) {
-            fetchLocationApiData();   
+            if (selectedStop == null) {
+                fetchLocationApiData(); 
+            }  
         }
     }
 
@@ -278,13 +275,14 @@ export default function Map({value}) {
                                         key={bus}
                                         onClick={() => {
                                             fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)
-                                            setTimeout(() => {
-                                                fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
-                                            }, 300)
-                                            
-                                            // fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
-                                            displayClickedBus(selectedStop, setSelectedStop, setBusStopData)
-                                            // fetchArrivalTimeApiData(selectedStop.StopNo, bus, setNextBusEstimate)
+                                                .then(() => {
+                                                    fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
+                                                    displayClickedBus(selectedStop, setSelectedStop, setBusStopData)
+                                                })
+                                            // setTimeout(() => {
+                                            //     fetchBusApiData(bus, selectedStop.StopNo, setBusData, busData)
+                                            // }, 300)
+                                            // displayClickedBus(selectedStop, setSelectedStop, setBusStopData)
                                         }}
                                     >
                                         {bus}
