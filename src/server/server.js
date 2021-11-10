@@ -13,7 +13,7 @@ const contactEmail = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: "geun.git.it@gmail.com",
-    pass: "kongbean0910",
+    pass: process.env.REACT_APP_EMAIL_PASSWORD,
   },
 });
 

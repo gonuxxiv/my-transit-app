@@ -1,7 +1,7 @@
 // import { Map, GoogleApiWrapper } from 'google-maps-react';
-import React, {Component, useEffect} from 'react';
+import React from 'react';
 import dark from './GoogleMapStyles';
-import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsRenderer, DirectionsService} from '@react-google-maps/api';
+import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsRenderer} from '@react-google-maps/api';
 // import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
 
