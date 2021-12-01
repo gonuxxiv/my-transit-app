@@ -4,6 +4,9 @@ import dark from './GoogleMapStyles';
 import {GoogleMap, useLoadScript, Marker, InfoWindow, DirectionsRenderer} from '@react-google-maps/api';
 // import usePlacesAutocomplete, {getGeoCode, getLatLng} from "use-places-autocomplete";
 import axios from "axios";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
 const GOOGLE_MAP_API = process.env.REACT_APP_GOOGLE_MAP_API;
