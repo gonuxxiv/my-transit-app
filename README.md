@@ -1,24 +1,34 @@
-# My-Transit-App
+# Vancouver Transit Web Application
 
-    Tools used for this project:
-        - React.js
-        - Node.js
-        - Google Map API
-        - Translink API
+Vancouver Transit App (VTA) is a React.js project that retrieves bus time and location from TransLink API.
 
-# Schedule
+Live Demo: https://www.vancouver-transit.com/
 
-## Next Step
+## Installation
 
-    - Style bus stop detail textbox.
-    - Fix minor CSS bugs.
-    - Add search function.
+In the project directory, run:
 
-## Problems
+```bash
+npm install && npm start
+```
 
-    - Not able to load markers as the map pans to the current location.
-    - The bus stops show up with delay.
+## Screenshots
 
+![map1](images/map1.png)
+![map2](images/map2.png)
+![map3](images/map3.png)
+![contact](images/contact.png)
+
+## Tech Stack
+
+### Frontend
+- React.Js
+- Google Map API
+
+### Backend
+- Node.Js
+- TransLink API
+- EmailJS
 
 ## Available Scripts
 
