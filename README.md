@@ -4,14 +4,6 @@ Vancouver Transit App (VTA) is a React.js project that retrieves bus time and lo
 
 Live Demo: https://www.vancouver-transit.com/
 
-## Installation
-
-In the project directory, run:
-
-```bash
-npm install && npm start
-```
-
 ## Screenshots
 
 ![map1](images/map1.png)
@@ -30,9 +22,10 @@ npm install && npm start
 - TransLink API
 - EmailJS
 
-## Available Scripts
+## Installation
 
-In the project directory, you can run:
+In the project directory, run:
 
-### `npm install` && `npm start`
-
+```bash
+npm install && npm start
+```
